@@ -1,10 +1,11 @@
-import { Injectable, ConflictException, BadRequestException } from "@nestjs/common";
+import { Injectable, ConflictException, BadRequestException, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { User, UserDocument } from "./schemas/user.schema";
+import { User, UserDocument } from "../users/schemas/user.schema";
 import { RegisterDto } from "./dto/register.dto";
 import * as bcrypt from 'bcryptjs';
 import { Types } from "mongoose";
+import { LoginDto } from "./dto/login.dto";
 
 @Injectable()
 export class AuthService{
@@ -14,7 +15,7 @@ export class AuthService{
         try {
             const { username, email, password } = registerDto
 
-            // Verigicar si ya existe un usuario con el mismo username o mail
+            // Verificar si ya existe un usuario con el mismo username o mail
 
             const existeUser = await this.userModel.findOne({
                 $or: [
@@ -25,11 +26,11 @@ export class AuthService{
 
             if (existeUser) {
                 if (existeUser.username === username.toLowerCase()){
-                    throw new ConflictException('El nombre de usuario ya esta en uso')
+                    return new ConflictException('El nombre de usuario ya esta en uso')
                 }
 
                 if (existeUser.email === email.toLowerCase()){
-                    throw new ConflictException('El mail ya esta en uso')
+                    return new ConflictException('El mail ya esta en uso')
                 }
             }
 
@@ -71,7 +72,7 @@ export class AuthService{
                 const validationError = Object.values(error.errors).map(
                     (err:any) => err.message
                 );
-                throw new BadRequestException({
+                return new BadRequestException({
                     success: false,
                     message: 'Error de validacion',
                     errors: validationError
@@ -85,6 +86,48 @@ export class AuthService{
                 const message = field === 'username' ? 'El nombre de usuario ya esta en uso' : 'El correo electronico ya esta registrado'
             }
 
+        }
+    }
+
+    async login(loginDto : LoginDto) : Promise<any> {
+
+        //  Por POST: debe recibir el usuario / correo y contraseña sin encriptar.
+        // ■ Debe encriptar la contraseña recibida para confirmar el login.
+        // ■ Debe devolver todos los datos del usuario.
+
+        try {
+
+            const { login, password } = loginDto;
+
+            const existeUser = await this.userModel.findOne({
+                $or: [
+                    { username: login.toLowerCase()},
+                    { email: login.toLowerCase()}
+                ]
+            });
+
+            if (!existeUser) {
+                return new NotFoundException({ 
+                    sucess: false,
+                    message: "Usuario o mail no encontrado."
+                })
+            }
+
+            const sonIguales = await bcrypt.compare(password, existeUser.password)
+
+            if (!sonIguales) {
+                return new BadRequestException({
+                    success: false,
+                    message: 'Contraseña incorrecta'
+                })
+            }
+
+
+            return existeUser;
+            
+            
+        } catch (error) {
+            return new Error;
         }
     }
 }

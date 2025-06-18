@@ -36,6 +36,7 @@ import {
 
     @IsNotEmpty({message: 'El email es obligatorio'})
     @IsString({message: 'El email debe ser texto'})
+    @IsEmail()
     email: string;
 
 

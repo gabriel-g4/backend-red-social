@@ -3,8 +3,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 // import { AppController } from './app.controller';
 // import { AppService } from './app.service';
-import { PublicacionesModule } from './publicaciones/publicaciones.module';
-import { UsuariosModule } from './usuarios/usuarios.module';
+import { PostsModule } from './posts/posts.module';
+import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 
 @Module({
@@ -20,9 +20,9 @@ import { AuthModule } from './auth/auth.module';
 
     AuthModule,
 
-    PublicacionesModule,
+    PostsModule,
 
-    UsuariosModule,
+    UsersModule,
 
   ],
   controllers: [],
