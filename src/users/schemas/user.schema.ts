@@ -37,6 +37,14 @@ export class User {
     @ApiProperty({example: true})
     @Prop ({default: true})
     isActive: boolean;
+
+    @ApiProperty({example: Date.now()})
+    @Prop ({required: true})
+    fechaNacimiento: Date;
+
+    @ApiProperty({example: "Una descripcion breve"})
+    @Prop ({default: null})
+    descripcion: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)

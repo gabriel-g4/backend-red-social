@@ -45,7 +45,10 @@ export class AuthService{
                 password: hashedPassword,
                 nombre: registerDto.nombre,
                 apellido: registerDto.apellido,
-                imagenPerfil: imagenPerfilUrl
+                imagenPerfil: imagenPerfilUrl,
+                tipoPerfil: registerDto.tipoPerfil,
+                fechaNacimiento: registerDto.fechaNacimiento,
+                descripcion: registerDto.descripcion
             })
 
             // guardar en bd
