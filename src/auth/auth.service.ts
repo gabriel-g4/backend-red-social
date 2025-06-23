@@ -130,4 +130,12 @@ export class AuthService{
             return new Error;
         }
     }
+
+    async findById(id: string) : Promise<any> {
+        const user = await this.userModel.find( {_id: id})
+        console.log(user)
+        if (!user)
+            throw new NotFoundException('Usuario no encontrado')
+        return user 
+    }
 }
