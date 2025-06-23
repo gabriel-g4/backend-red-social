@@ -52,7 +52,6 @@ import {
 
    
    @IsOptional()
-   @IsUrl({},{message: 'La URL de la imagen debe ser válida'})
    @Matches(/\.(jpg|png|gif|webp|jpeg)$/i, 
         {message: 'La URL de la imagen debe tener un fomato válido (jpg|png|gif|webp|jpeg)'})
    imagenPerfil: string;
