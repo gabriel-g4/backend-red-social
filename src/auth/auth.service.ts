@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, BadRequestException, NotFoundException } from "@nestjs/common";
+import { Injectable, ConflictException, BadRequestException, NotFoundException, HttpException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { User, UserDocument } from "../users/schemas/user.schema";
@@ -6,10 +6,18 @@ import { RegisterDto } from "./dto/register.dto";
 import * as bcrypt from 'bcryptjs';
 import { Types } from "mongoose";
 import { LoginDto } from "./dto/login.dto";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
+
+export interface JwtPayload {
+    sub: string,
+    username: string,
+    roles?: string[]
+}
 
 @Injectable()
 export class AuthService{
-    constructor(@InjectModel(User.name) private userModel: Model <UserDocument>) {}
+    constructor(@InjectModel(User.name) private userModel: Model <UserDocument>,  private jwtService: JwtService, private configService: ConfigService) {}
 
     async register(registerDto: RegisterDto, imagenPerfilUrl?:string) : Promise<any> {
         try {
@@ -55,6 +63,19 @@ export class AuthService{
 
             const savedUser = await newUser.save();
 
+            //  // Crear payload para el token JWT
+            const payload = {
+                sub: savedUser._id,
+                username: savedUser.username,
+                roles: [savedUser.tipoPerfil], // "usuario" o "administrador"
+            };
+
+            // Firmar el token JWT con expiración de 15 minutos
+            const token = this.jwtService.sign(payload, {
+                expiresIn: '15m',
+                secret: this.configService.get('JWT_SECRET'),
+            });
+
             // convertir a objetos y eliminar la contraseña de la respuesta
             const userObject = savedUser.toObject()
             const {password: _, ...userWithoutPassword} = userObject;
@@ -62,6 +83,8 @@ export class AuthService{
             return {
                 succes: true,
                 message: 'Usuario registrado exitosamente',
+                accessToken: token,
+                expiresIn: 15 * 60,
                 data: {
                     user: userWithoutPassword,
                     userId: (savedUser._id as Types.ObjectId).toString()
@@ -102,40 +125,60 @@ export class AuthService{
 
             const { login, password } = loginDto;
 
-            const existeUser = await this.userModel.findOne({
+            const user = await this.userModel.findOne({
                 $or: [
                     { username: login.toLowerCase()},
                     { email: login.toLowerCase()}
                 ]
             });
 
-            if (!existeUser) {
-                return new NotFoundException({ 
+            if (!user) {
+                throw new NotFoundException({ 
                     sucess: false,
                     message: "Usuario o mail no encontrado."
                 })
             }
 
-            const sonIguales = await bcrypt.compare(password, existeUser.password)
+            const sonIguales = await bcrypt.compare(password, user.password)
 
             if (!sonIguales) {
-                return new BadRequestException({
+                throw new BadRequestException({
                     success: false,
                     message: 'Contraseña incorrecta'
                 })
             }
 
+            const payload = {
+                sub: user._id,
+                username: user.username,
+                roles: [user.tipoPerfil], // puede ser "usuario" o "administrador"
+            };
 
-            return existeUser;
+            const token = this.jwtService.sign(payload, {
+                expiresIn: '15m', // 15 minutos
+                secret: this.configService.get('JWT_SECRET'),
+            });
+
+            const { password: userPassword, ...userWithoutPassword } = user.toObject();
+            
+
+            return {
+                success: true,
+                message: 'Login exitoso',
+                accessToken: token,
+                expiresIn: 15 * 60,
+                user: userWithoutPassword,
+            };
             
             
         } catch (error) {
-            return new Error;
+            if (error instanceof HttpException) throw error;
+            throw new Error('Error interno en el login');
         }
     }
 
     async findById(id: string) : Promise<any> {
-        const user = await this.userModel.find( {_id: id})
+        const user = await this.userModel.find( {_id: id}).lean()
         console.log(user)
         if (!user)
             throw new NotFoundException('Usuario no encontrado')

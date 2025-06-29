@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { 
     IsNotEmpty,
     IsString,
@@ -7,10 +8,12 @@ import {
 
 
  export class LoginDto {
+    @ApiProperty()
     @IsNotEmpty({message: 'El nombre de usuario es obligatorio'})
     @IsString({message: 'El nombre de usuario debe ser texto'})
     login: string
 
+    @ApiProperty()
     @IsNotEmpty({message: 'La contraseña es obligatoria'})
     @IsString({message: 'La contraseña debe ser texto'})
     @MinLength(8, {message: 'La contraseña debe tener al menos 8 caracteres'})
