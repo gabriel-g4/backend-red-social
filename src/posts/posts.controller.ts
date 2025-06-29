@@ -1,8 +1,10 @@
-import { Body, Controller, Delete, Headers, Param, Get } from "@nestjs/common";
+import { Body, Controller, Delete, Headers, Param, Get, Query, Post, UseInterceptors, UploadedFile } from "@nestjs/common";
 import { PostService } from "./posts.service";
 import { CreatePostDto } from "./dto/create-post.dto";
-import { Post } from "@nestjs/common";
 import { GetPostsDto } from "./dto/get-posts.dto";
+import { diskStorage } from "multer";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { extname } from "path";
 
 @Controller('posts')
 export class PostsController {
@@ -10,18 +12,32 @@ export class PostsController {
     constructor(private readonly postService: PostService) {}
     
     @Get()
-    findAll(@Body() getPostDto: GetPostsDto) {
+    findAll(@Query() getPostDto: GetPostsDto) {
         return this.postService.findAll(getPostDto)
     }
 
     @Post()
-    create(
-        @Body() createPostDto: CreatePostDto, 
+    @UseInterceptors(
+        FileInterceptor('imagen', {
+        storage: diskStorage({
+            destination: './uploads',
+            filename: (req, file, cb) => {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                const ext = extname(file.originalname);
+                cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+            },
+        }),
+        }),
+    )
+    async create(
+        @Body() createPostDto: CreatePostDto,
         @Headers('userId') userId: string,
-        @Headers('imagenPath') imagenPath?: string
+        @UploadedFile() file?: Express.Multer.File,
     ) {
+        const imagenPath = file ? `/uploads/${file.filename}` : undefined;
+
         return this.postService.create(createPostDto, userId, imagenPath);
-    }
+  }
 
     @Post(':postId/like')
     addLike(

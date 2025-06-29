@@ -41,7 +41,7 @@ export class PostService {
 
         // Ordenar por fecha o cantidad de likes
         if (sortBy === SortBy.LIKES) {
-            query.sort({'likes.length': -1, 'createdAt': -1})
+            query.sort({'likes': -1, 'createdAt': -1})
         } else if ( sortBy === SortBy.DATE) {
             query.sort({'createdAt': -1})
         }
