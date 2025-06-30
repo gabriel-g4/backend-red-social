@@ -16,6 +16,11 @@ export class PostsController {
         return this.postService.findAll(getPostDto)
     }
 
+    @Get(':id')
+    async findOne(@Param('id') id: string) {
+        return this.postService.findOne(id);
+    }
+
     @Post()
     @UseInterceptors(
         FileInterceptor('imagen', {

@@ -10,6 +10,8 @@ import {JwtAuthGuard} from './guards/jwt-auth.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { TokenController } from './controllers/token.controller';
+import { PassportModule } from '@nestjs/passport';
+
 
 
 @Module({
@@ -17,6 +19,7 @@ import { TokenController } from './controllers/token.controller';
     MongooseModule.forFeature([
       {name: User.name, schema: UserSchema}
     ]),
+    PassportModule.register({ defaultStrategy: 'jwt' }), 
     JwtModule.registerAsync({
       imports: [ConfigModule],  // si usas ConfigService para la configuración JWT
       inject: [ConfigService],
@@ -28,7 +31,7 @@ import { TokenController } from './controllers/token.controller';
     ConfigModule
   ],
   controllers: [AuthController, TokenController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
   exports: [AuthService]
 })
 export class AuthModule {}

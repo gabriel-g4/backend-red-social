@@ -7,7 +7,7 @@ import { User, UserDocument } from "src/users/schemas/user.schema"
 import { TokenDto } from '../dto/token.dto';
 import { timestamp } from "rxjs"
 
-@ApiTags('auth')
+@ApiTags('Auth')
 @Controller('auth')
 export class TokenController {
     private readonly logger = new Logger(TokenController.name)
