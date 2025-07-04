@@ -5,6 +5,7 @@ import { GetPostsDto } from "./dto/get-posts.dto";
 import { diskStorage } from "multer";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { extname } from "path";
+import { ApiBearerAuth } from "@nestjs/swagger";
 
 @Controller('posts')
 export class PostsController {
@@ -12,16 +13,19 @@ export class PostsController {
     constructor(private readonly postService: PostService) {}
     
     @Get()
+    @ApiBearerAuth()
     findAll(@Query() getPostDto: GetPostsDto) {
         return this.postService.findAll(getPostDto)
     }
 
     @Get(':id')
+    @ApiBearerAuth()
     async findOne(@Param('id') id: string) {
         return this.postService.findOne(id);
     }
 
     @Post()
+    @ApiBearerAuth()
     @UseInterceptors(
         FileInterceptor('imagen', {
         storage: diskStorage({
@@ -45,14 +49,18 @@ export class PostsController {
   }
 
     @Post(':postId/like')
+    @ApiBearerAuth()
     addLike(
         @Param('postId') postId: string,
         @Headers('userId') userId: string
     ) {
+        console.log(postId)
+        console.log(userId)
         return this.postService.addLike(postId, userId);
     }
 
     @Delete(':postId/like')
+    @ApiBearerAuth()
     removeLike(
         @Param('postId') postId: string,
         @Headers('userId') userId: string
@@ -61,6 +69,7 @@ export class PostsController {
     }
 
     @Delete(':postId')
+    @ApiBearerAuth()
     softDelete(
         @Param('postId') postId: string,
         @Headers('userId') userId: string

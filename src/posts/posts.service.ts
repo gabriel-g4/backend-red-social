@@ -28,36 +28,84 @@ export class PostService {
     async findAll(getPostDto: GetPostsDto): Promise <{posts: Post[], total: number}>{
         const { sortBy, usuarioId, offset = 0, limit = 10} = getPostDto;
 
-        // consulta base - excluir publicaciones eliminadas
-        const query = this.postModel.find({eliminado: false})
+        let posts;
+
+        const filtro: any = { eliminado: false };
+
 
         // filtrar por usuario si se especifica
         if (usuarioId) {
             if (!Types.ObjectId.isValid(usuarioId)){
                 throw new NotFoundException('Id de usuario invalido')
             }
-            query.where('autor').equals(usuarioId)
+            filtro.autor = usuarioId;
         }
 
         // Ordenar por fecha o cantidad de likes
         if (sortBy === SortBy.LIKES) {
-            query.sort({'likes': -1, 'createdAt': -1})
+             // ✅ Usar agregación para ordenar por cantidad de likes sin modificar el esquema
+            posts = await this.postModel.aggregate([
+                { $match: filtro },
+
+                // Agregar campo temporal para contar likes
+                {
+                $addFields: {
+                    likesLength: { $size: "$likes" }
+                }
+                },
+
+                // Ordenar por cantidad de likes y luego por fecha
+                {
+                $sort: {
+                    likesLength: -1,
+                    createdAt: -1
+                }
+                },
+
+                // Aplicar paginación
+                { $skip: offset },
+                { $limit: limit },
+
+                // Simular populate del autor
+                {
+                $lookup: {
+                    from: "users", // ⚠️ Asegúrate de que este sea el nombre correcto de la colección
+                    localField: "autor",
+                    foreignField: "_id",
+                    as: "autor"
+                }
+                },
+                { $unwind: "$autor" },
+
+                // Quitar campo temporal y datos sensibles
+                {
+                $project: {
+                    likesLength: 0,
+                    "autor.password": 0,
+                    "autor.email": 0
+                }
+                }
+            ]);
+
         } else if ( sortBy === SortBy.DATE) {
-            query.sort({'createdAt': -1})
+            const query = this.postModel
+            .find(filtro)
+            .sort({'createdAt': -1})
+            // Aplicar paginacion
+            .skip(offset)
+            .limit(limit)
+            // Poblar la informacion del autor sin incluir informacion sensible
+            .populate('autor', 'username nombre apellido imagenPerfil')
+            // query.populate('autor', '_id')  
+            // ejecutar la consulta
+            posts =  await query.exec()
         }
+        
 
-        // Aplicar paginacion
-        query.skip(offset).limit(limit)
 
-        // Poblar la informacion del autor sin incluir informacion sensible
-        query.populate('autor', 'username nombre apellido imagenPerfil')
-        // query.populate('autor', '_id')  
-
-        // ejecutar la consulta
-        const posts =  await query.exec()
 
         // obtener conteo total de paginacion
-        const total = await this.postModel.countDocuments({ eliminado: false, ...(usuarioId ? {autor: usuarioId} : {} )})
+        const total = await this.postModel.countDocuments(filtro);
 
         return {posts, total};
     }
