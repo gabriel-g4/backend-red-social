@@ -6,6 +6,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 
 @Controller('posts/:postId/comments')
@@ -13,6 +14,7 @@ export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Post()
   @UseInterceptors(
     FileInterceptor('imagen', {
@@ -39,6 +41,7 @@ export class CommentController {
   }
 
   @Put(':commentId')
+  @ApiBearerAuth()
   async update(
     @Param('postId') postId: string,
     @Param('commentId') commentId: string,
@@ -53,6 +56,7 @@ export class CommentController {
   }
 
   @Get()
+  @ApiBearerAuth()
   async getAll(
     @Param('postId') postId: string,
     @Query('page') page = '1',

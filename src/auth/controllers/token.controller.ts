@@ -82,6 +82,7 @@ export class TokenController {
     }
 
     @Post('refrescar')
+    @ApiBearerAuth()
     @HttpCode(HttpStatus.OK)
     @ApiConsumes('application/json')
     @ApiOperation({
