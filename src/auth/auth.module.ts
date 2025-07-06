@@ -32,7 +32,7 @@ import { RolesGuard } from './guards/roles.guard';
     ConfigModule
   ],
   controllers: [AuthController, TokenController],
-  providers: [AuthService, JwtStrategy, RolesGuard],
+  providers: [AuthService, JwtStrategy, RolesGuard, JwtAuthGuard],
   exports: [AuthService, RolesGuard, JwtModule]
 })
 export class AuthModule {}

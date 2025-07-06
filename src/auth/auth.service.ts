@@ -17,7 +17,9 @@ export interface JwtPayload {
 
 @Injectable()
 export class AuthService{
-    constructor(@InjectModel(User.name) private userModel: Model <UserDocument>,  private jwtService: JwtService, private configService: ConfigService) {}
+    constructor(@InjectModel(User.name) private userModel: Model <UserDocument>,  private jwtService: JwtService, private configService: ConfigService) {
+        console.log('JWT_SECRET desde constructor AuthService:', this.configService.get('JWT_SECRET'));
+    }
 
     async register(registerDto: RegisterDto, imagenPerfilUrl?:string) : Promise<any> {
         try {
@@ -71,10 +73,7 @@ export class AuthService{
             };
 
             // Firmar el token JWT con expiración de 15 minutos
-            const token = this.jwtService.sign(payload, {
-                expiresIn: '15m',
-                secret: this.configService.get('JWT_SECRET'),
-            });
+            const token = this.jwtService.sign(payload);
 
             // convertir a objetos y eliminar la contraseña de la respuesta
             const userObject = savedUser.toObject()
@@ -158,10 +157,7 @@ export class AuthService{
                 roles: [user.tipoPerfil], // puede ser "usuario" o "administrador"
             };
 
-            const token = this.jwtService.sign(payload, {
-                expiresIn: '15m', // 15 minutos
-                secret: this.configService.get('JWT_SECRET'),
-            });
+            const token = this.jwtService.sign(payload);
 
             const { password: userPassword, ...userWithoutPassword } = user.toObject();
             
