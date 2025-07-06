@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Headers, Param, Get, Query, Post, UseInterceptors, UploadedFile } from "@nestjs/common";
+import { Body, Controller, Delete, Headers, Param, Get, Query, Post, UseInterceptors, UploadedFile, UseGuards } from "@nestjs/common";
 import { PostService } from "./posts.service";
 import { CreatePostDto } from "./dto/create-post.dto";
 import { GetPostsDto } from "./dto/get-posts.dto";
@@ -6,6 +6,8 @@ import { diskStorage } from "multer";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { extname } from "path";
 import { ApiBearerAuth } from "@nestjs/swagger";
+import { GetPostsStatsDto } from "./dto/get-posts-stats.dto";
+import { RolesGuard } from "src/auth/guards/roles.guard";
 
 @Controller('posts')
 export class PostsController {
@@ -75,6 +77,13 @@ export class PostsController {
         @Headers('userId') userId: string
     ) {
         return this.postService.softDelete(postId, userId);
+    }
+
+    @Post('stats/by-user')
+    @UseGuards(RolesGuard)
+    @ApiBearerAuth()
+        getPostCountByUser(@Body() dto: GetPostsStatsDto) {
+        return this.postService.countPostsByUser(dto.startDate, dto.endDate);
     }
 
 }

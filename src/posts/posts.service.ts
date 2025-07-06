@@ -211,4 +211,37 @@ export class PostService {
 
         return updatePost
     }
+
+    async countPostsByUser(startDate: string, endDate: string) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999); // Incluye todo el día final
+
+        const result = await this.postModel.aggregate([
+            {
+                $match: {
+                    eliminado: false,
+                    createdAt: {
+                        $gte: start,
+                        $lte: end
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: '$autor',
+                    postCount: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    userId: '$_id',
+                    postCount: 1,
+                    _id: 0
+                }
+            }
+        ]);
+
+        return result;
+    }
 }
