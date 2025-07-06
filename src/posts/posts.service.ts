@@ -140,7 +140,7 @@ export class PostService {
         // verificar si el usuario es el autor o un administrador
         const user = await this.authService.findById(usuarioId);
         console.log(user)
-        const isAdmin = user && user.tipoPerfil && user.tipoPerfil.includes('admin') ? true : false;
+        const isAdmin = user && user.tipoPerfil && user.tipoPerfil.includes('administrador') ? true : false;
         const isAutor = post.autor && post.autor.toString().includes(usuarioId) ? true : false;
         console.log(post)
         console.log(post.autor)

@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, BadRequestException, NotFoundException, HttpException } from "@nestjs/common";
+import { Injectable, ConflictException, BadRequestException, NotFoundException, HttpException, UnauthorizedException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { User, UserDocument } from "../users/schemas/user.schema";
@@ -137,6 +137,10 @@ export class AuthService{
                     sucess: false,
                     message: "Usuario o mail no encontrado."
                 })
+            }
+
+            if (!user.isActive) {
+                throw new UnauthorizedException('Tu cuenta está deshabilitada. Contactá al administrador.');
             }
 
             const sonIguales = await bcrypt.compare(password, user.password)
