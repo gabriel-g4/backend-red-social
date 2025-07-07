@@ -1,6 +1,6 @@
 import { IsDateString } from 'class-validator';
 
-export class GetPostsStatsDto {
+export class GetStatsDto {
   @IsDateString()
   startDate: string;
 

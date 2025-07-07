@@ -230,13 +230,13 @@ export class PostService {
             {
                 $group: {
                     _id: '$autor',
-                    postCount: { $sum: 1 }
+                    count: { $sum: 1 }
                 }
             },
             {
                 $project: {
                     userId: '$_id',
-                    postCount: 1,
+                    count: 1,
                     _id: 0
                 }
             }

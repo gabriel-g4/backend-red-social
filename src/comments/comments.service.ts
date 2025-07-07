@@ -65,4 +65,60 @@ export class CommentService {
       comments,
     };
   }
+
+
+   async countCommentsByUser(startDate: string, endDate: string) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+    console.log(startDate, endDate)
+    return await this.commentModel.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: start, $lte: end }
+        }
+      },
+      {
+        $group: {
+          _id: '$autor', 
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          userId: '$_id',
+          count: 1,
+          _id: 0
+        }
+      }
+    ]);
+  }
+
+  async countCommentsByPost(startDate: string, endDate: string) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  end.setHours(23, 59, 59, 999);
+
+  return await this.commentModel.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: start, $lte: end }
+      }
+    },
+    {
+      $group: {
+        _id: '$post',
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $project: {
+        postId: '$_id',
+        count: 1,
+        _id: 0
+      }
+    }
+  ]);
+}
+
 }

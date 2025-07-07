@@ -6,7 +6,7 @@ import { diskStorage } from "multer";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { extname } from "path";
 import { ApiBearerAuth } from "@nestjs/swagger";
-import { GetPostsStatsDto } from "./dto/get-posts-stats.dto";
+import { GetStatsDto } from "./dto/get-stats.dto";
 import { RolesGuard } from "src/auth/guards/roles.guard";
 
 @Controller('posts')
@@ -82,7 +82,7 @@ export class PostsController {
     @Post('stats/by-user')
     @UseGuards(RolesGuard)
     @ApiBearerAuth()
-        getPostCountByUser(@Body() dto: GetPostsStatsDto) {
+        getPostCountByUser(@Body() dto: GetStatsDto) {
         return this.postService.countPostsByUser(dto.startDate, dto.endDate);
     }
 

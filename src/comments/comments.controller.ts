@@ -7,6 +7,8 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { GetStatsDto } from 'src/posts/dto/get-stats.dto';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 
 @Controller('posts/:postId/comments')
@@ -64,4 +66,12 @@ export class CommentController {
   ) {
     return this.commentService.findByPost(postId, parseInt(page), parseInt(limit));
   }
+
+
+  @Post('stats/by-user')
+      @UseGuards(RolesGuard)
+      @ApiBearerAuth()
+          getCommentCountByUser(@Body() dto: GetStatsDto) {
+          return this.commentService.countCommentsByUser(dto.startDate, dto.endDate);
+      }
 }
