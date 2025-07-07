@@ -48,6 +48,11 @@ export class AuthService{
             const saltRounds = 12
             const hashedPassword = await bcrypt.hash(password, saltRounds)
 
+            // imagen estandar
+            if (!imagenPerfilUrl) {
+                imagenPerfilUrl = "/uploads/default-avatar.png"
+            }
+
             // crear un usuario
             const newUser = new this.userModel({
                 username: username.toLowerCase(),
